@@ -2,6 +2,8 @@
 This firmware is to be used with makerspace esp32 macropad boards (makerspace proj 24-002). 
 It supports keyboard emulation,string based macros, along with media control. 
 
+Before compiling, ensure that ArduinoJson and StringSplitter have been installed from the arduino extensions section!
+
 For help or support, go to makerspace.cc/Macropad or contact johnsonm3@carleton.edu.
 
 This project took me a lot of research; here are some prominent resources:
