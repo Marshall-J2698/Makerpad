@@ -1,5 +1,5 @@
 file = open("key_dict","r")
-# output = {}
+
 output = []
 for line in file:
     # print(line.lstrip("#define"))
