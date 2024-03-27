@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Macropad UI</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <h1>Reprogram your Macropad!</h1>
+  <body>
+    <style>
+      body {background-image: linear-gradient(rgb(52, 47, 69),rgb(46, 41, 61))}
+      body {min-height: 100vh}
+      body {text-align: center}
+      body {font-family: 'JetBrains Mono',Verdana, Geneva, Tahoma, sans-serif}
+      body {color: lightgray}
+      a:link {color: yellow}
+    </style>
+    <form action="/sent!" method="post" enctype="multipart/form-data">
+    <label for="k1">key 1 string:</label><br>
+    <input type="text" id="k1" name="k1" maxlength="100"><br>
+    <label for="k2">key 2 string:</label><br>
+    <input type="text" id="k2" name="k2" maxlength="100"><br>
+    <label for="k3">key 3 string:</label><br>
+    <input type="text" id="k3" name="k3" maxlength="100"><br><br>
+    <b>Knob Action:</b><br>
+    <label for="Mute">Mute</label>
+    <input type = radio id="Mute" name="k4" value="226"><br>
+    <label for="Pause">Pause</label>
+    <input type = radio id="Pause" name="k4" value="205"><br>
+    <label for="Next Track">Next Track</label>
+    <input type = radio id="Next Track" name="k4" value="181"><br>
+    <br>
+    <br><b>LED Mode:</b><br>
+    <label for="No LED actions">No LED actions</label>
+    <input type = radio id="No LED actions" name="LEDmode" value=0><br>
+    <label for="On Press">On Press</label>
+    <input type = radio id="On Press" name="LEDmode" value=1><br>
+    <label for="Breath">Breath</label>
+    <input type = radio id="Breath" name="LEDmode" value=2><br>
+    <br>
+    <label for="submit_button">Save changes:</label>
+    <input type = "submit" id = "submit_button" name="submit_button">
+
+    </form>
+    <h3>
+      Welcome to the Makerpad reprogramming tool! <br>
+      To use, simply enter the string or key that you're interested in sending for a given key, then press submit.<br><br>
+      For more info, please visit <a href="www.makerspace.cc/macropad">makerspace.cc/macropad</a> for more detailed instructions
+    </h3>
+     
+    
+  </body>
+</html>
+
+<!-- thanks to jessica wilkins of freecodecamp for this boilerplate! -->

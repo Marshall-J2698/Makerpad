@@ -1,4 +1,4 @@
-#Library provided by Aaron HG. Thanks!
+// Library provided by Aaron HG. Thanks!
 
 #ifndef BUTTON
 #define BUTTON

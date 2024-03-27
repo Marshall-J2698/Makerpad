@@ -17,7 +17,6 @@ https://arduinojson.org/v6/api/json/serializejson/
 #include <ArduinoJson.h>
 #include "StringSplitter.h"
 
-
 #include <WiFi.h>
 #include <WebServer.h>
 
@@ -45,12 +44,12 @@ bool wifi_setup_has_run = false;
 // Setting up the various buttons
 USBHIDKeyboard Keyboard;
 USBHIDConsumerControl Consumer;
-Button k1but(1,50,&Keyboard,&Consumer);
+Button k1but(1,50,&Keyboard,&Consumer,12);
 Button k2but(2,50,&Keyboard,&Consumer);
 Button k3but(3,50,&Keyboard,&Consumer);
 Button k4but(4,50,&Keyboard,&Consumer);
 
-Button rst(8,50,&Keyboard,&Consumer);
+Button rst(11,50,&Keyboard,&Consumer);
 Encoder enc;
 
 // Filesystem setup
@@ -95,6 +94,7 @@ void setup() {
     configJson["k2output"] = "this is the default for k2";
     configJson["k3output"] = "this is the default for k3";
     configJson["k4output"] = "226";
+    configJson["LEDMODE"] = 1;
 
     configJson["k1type"] = 2;
     configJson["k2type"] = 2;
@@ -110,9 +110,9 @@ void setup() {
 void loop() {
   if(!reset_mode){
 
-    k1but.idle(prevConfig["k1type"], prevConfig["k1output"], keyDictJson);
-    k2but.idle(prevConfig["k2type"], prevConfig["k2output"], keyDictJson);
-    k3but.idle(prevConfig["k3type"], prevConfig["k3output"], keyDictJson);
+    k1but.idle(prevConfig["k1type"], prevConfig["k1output"], keyDictJson,atoi(prevConfig["LEDMODE"]));
+    k2but.idle(prevConfig["k2type"], prevConfig["k2output"], keyDictJson,atoi(prevConfig["LEDMODE"]));
+    k3but.idle(prevConfig["k3type"], prevConfig["k3output"], keyDictJson,atoi(prevConfig["LEDMODE"]));
     if(k4but.media_if_pressed(prevConfig["k4output"])==1&&k1but.resetKey()==1){ //if you press both the volume knob and key1 at once, it will enter reset mode
       reset_mode = true;
     }
@@ -135,13 +135,9 @@ void loop() {
       WiFi.softAP(ssid, password);
       WiFi.softAPConfig(local_ip, gateway, subnet);
       server.begin();
-      
       delay(5000);
       server.on("/",send_base_html);
       server.on("/sent!",HTTP_POST,handlePost);
-
-
-      
       wifi_setup_has_run = true;
     }
     server.handleClient();
@@ -155,13 +151,13 @@ void send_base_html(){
 }
 
 void handlePost(){
-
   configFile = LittleFS.open("/board_config.json",FILE_WRITE);
   StaticJsonDocument<256> configJson;
   configJson["k1output"] = server.arg("k1");
   configJson["k2output"] = server.arg("k2");
   configJson["k3output"] = server.arg("k3");
   configJson["k4output"] = server.arg("k4");
+  configJson["LEDMODE"] = server.arg("LEDmode");
 
   configJson["k1type"] = classifyOutputType(server.arg("k1"));
   configJson["k2type"] = classifyOutputType(server.arg("k2"));
@@ -243,7 +239,7 @@ output += "    <label for=\"k2\">key 2 string:</label><br>\n";
 output += "    <input type=\"text\" id=\"k2\" name=\"k2\" maxlength=\"100\"><br>\n";
 output += "    <label for=\"k3\">key 3 string:</label><br>\n";
 output += "    <input type=\"text\" id=\"k3\" name=\"k3\" maxlength=\"100\"><br><br>\n";
-output += "    Knob action:<br>\n";
+output += "    <b>Knob Action:</b><br>\n";
 output += "    <label for=\"Mute\">Mute</label>\n";
 output += "    <input type = radio id=\"Mute\" name=\"k4\" value=\"226\"><br>\n";
 output += "    <label for=\"Pause\">Pause</label>\n";
@@ -251,14 +247,25 @@ output += "    <input type = radio id=\"Pause\" name=\"k4\" value=\"205\"><br>\n
 output += "    <label for=\"Next Track\">Next Track</label>\n";
 output += "    <input type = radio id=\"Next Track\" name=\"k4\" value=\"181\"><br>\n";
 output += "    <br>\n";
+output += "    <br><b>LED Mode:</b><br>\n";
+output += "    <label for=\"No LED actions\">No LED actions</label>\n";
+output += "    <input type = radio id=\"No LED actions\" name=\"LEDmode\" value=0><br>\n";
+output += "    <label for=\"On Press\">On Press</label>\n";
+output += "    <input type = radio id=\"On Press\" name=\"LEDmode\" value=1><br>\n";
+output += "    <label for=\"Breath\">Breath</label>\n";
+output += "    <input type = radio id=\"Breath\" name=\"LEDmode\" value=2><br>\n";
+output += "    <br>\n";
 output += "    <label for=\"submit_button\">Save changes:</label>\n";
 output += "    <input type = \"submit\" id = \"submit_button\" name=\"submit_button\">\n";
+output += "\n";
 output += "    </form>\n";
 output += "    <h3>\n";
 output += "      Welcome to the Makerpad reprogramming tool! <br>\n";
 output += "      To use, simply enter the string or key that you're interested in sending for a given key, then press submit.<br><br>\n";
 output += "      For more info, please visit <a href=\"www.makerspace.cc/macropad\">makerspace.cc/macropad</a> for more detailed instructions\n";
 output += "    </h3>\n";
+output += "     \n";
+output += "    \n";
 output += "  </body>\n";
 output += "</html>\n";
   return output;
