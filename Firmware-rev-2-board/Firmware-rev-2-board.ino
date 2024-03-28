@@ -40,6 +40,11 @@ String local_address = "192.168.1.1";
 bool reset_mode = false;
 bool wifi_setup_has_run = false;
 
+unsigned long breath_timer = 0;
+unsigned long breath_delay = 70;
+int LED_change = 1;
+int LED_power = 0;
+
 
 // Setting up the various buttons
 USBHIDKeyboard Keyboard;
@@ -105,6 +110,14 @@ void setup() {
   if(dict_error){
     writeKeyDict();
   }
+  if(prevConfig["LEDMODE"]=="3"|prevConfig["LEDMODE"]=="2"){
+    // TODO: add all the LEDs
+    pinMode(12,OUTPUT);
+    if(prevConfig["LEDMODE"]=="3"){
+      digitalWrite(12,HIGH);
+    }
+    
+  }
 }
 
 void loop() {
@@ -117,7 +130,18 @@ void loop() {
       reset_mode = true;
     }
     enc.idle();
-    
+    // TODO: fix the breathing thing
+    if(prevConfig["LEDMODE"]=="2"){
+      if(millis()-breath_timer>breath_delay){
+        LED_power = LED_power + LED_change;
+        analogWrite(12,LED_power);
+        
+        if(LED_power>251||LED_power<2){
+          LED_change = LED_change * -1;
+        }
+        breath_timer = 0;
+      }
+    }
     
 
     if(rst.resetKey()==1){
@@ -213,7 +237,7 @@ output += "</html>\n";
 
 String base_html(){
   String output = "";
-  output += "<!DOCTYPE html>\n";
+output += "<!DOCTYPE html>\n";
 output += "<html lang=\"en\">\n";
 output += "  <head>\n";
 output += "    <meta charset=\"UTF-8\">\n";
@@ -254,6 +278,8 @@ output += "    <label for=\"On Press\">On Press</label>\n";
 output += "    <input type = radio id=\"On Press\" name=\"LEDmode\" value=1><br>\n";
 output += "    <label for=\"Breath\">Breath</label>\n";
 output += "    <input type = radio id=\"Breath\" name=\"LEDmode\" value=2><br>\n";
+output += "    <label for=\"Always on\">Always on</label>\n";
+output += "    <input type = radio id=\"Always on\" name=\"LEDmode\" value=3><br>\n";
 output += "    <br>\n";
 output += "    <label for=\"submit_button\">Save changes:</label>\n";
 output += "    <input type = \"submit\" id = \"submit_button\" name=\"submit_button\">\n";
