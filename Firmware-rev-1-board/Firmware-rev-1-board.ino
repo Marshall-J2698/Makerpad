@@ -48,7 +48,8 @@ USBHIDConsumerControl Consumer;
 Button k1but(1,50,&Keyboard,&Consumer);
 Button k2but(2,50,&Keyboard,&Consumer);
 Button k3but(3,50,&Keyboard,&Consumer);
-Button k4but(4,50,&Keyboard,&Consumer);
+// Button k4but(4,50,&Keyboard,&Consumer);
+Button k4but(35,50,&Keyboard,&Consumer);
 
 Button rst(8,50,&Keyboard,&Consumer);
 Encoder enc;

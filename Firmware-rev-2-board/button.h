@@ -18,35 +18,23 @@ class Button{
     USBHIDConsumerControl * Consumer;
     unsigned long key_delay;
     unsigned long debounce_time;
-    int LED_pin;
 
 
-    Button(int pin_num, unsigned long debounce_delay, USBHIDKeyboard * Keyboard_in,USBHIDConsumerControl * Consumer_in,int LED_pin_input=0){
+    Button(int pin_num, unsigned long debounce_delay, USBHIDKeyboard * Keyboard_in,USBHIDConsumerControl * Consumer_in){
       pin = pin_num;
       debounce_time = debounce_delay;
       Keyboard = Keyboard_in;
       Consumer = Consumer_in;
-      LED_pin = LED_pin_input;
       pinMode(pin, INPUT_PULLUP);
-      pinMode(LED_pin,OUTPUT);
     }
 
-    void idle(int output_type,String output,StaticJsonDocument<256> key_dict,int LED_mode=0){
+    void idle(int output_type,String output,StaticJsonDocument<256> key_dict){
       // The output type tells us what type of data the key is sending to the computer:
       // 0 = single key press (standard key input)
       // 1 = single key press (modifier/special key)
       // 2 = string of standard characters
       // 3 = single press combination (ex: KEY_ARROW_DOWN+++a) - only sent once, no hold support
       // 999 = unknown type; please reinput your string in the website
-
-      // LED_mode is used to determine an LED's behavior for a key. The following modes function as such:
-      // 0 = LED disabled (default)
-      // 1 = LED turned on while key is pressed
-      if(LED_mode==1){
-        if(digitalRead(pin)==LOW){
-          digitalWrite(LED_pin,HIGH);
-        }else digitalWrite(LED_pin,LOW);
-      }
       if(output_type==0){
         print_if_pressed(output);
       }else if(output_type==1){
@@ -129,23 +117,9 @@ class Button{
       }
       }
     }
- 
-    void LED_if_pressed(int pin_num){
-      if(digitalRead(pin)!=but_state){
-        but_state=!but_state;
-        key_delay = millis();
-      }
-      if(millis()-key_delay>debounce_time && but_state!=fired){
-        fired = but_state;
 
-         if(!but_state){
-          digitalWrite(pin_num,HIGH);
-         } 
-         else digitalWrite(pin_num,LOW); 
+    
 
-        
-      }
-    }
     
 
     void print_if_pressed(String output){
