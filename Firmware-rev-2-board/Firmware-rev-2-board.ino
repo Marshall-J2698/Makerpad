@@ -49,7 +49,6 @@ Button k1but(33, 50, &Keyboard, &Consumer);
 Button k2but(16, 50, &Keyboard, &Consumer);
 Button k3but(18, 50, &Keyboard, &Consumer);
 Button k4but(35, 50, &Keyboard, &Consumer);
-
 Button rst(8, 50, &Keyboard, &Consumer);
 Encoder enc;
 
@@ -114,7 +113,7 @@ void setup() {
     digitalWrite(3, HIGH);
     digitalWrite(5, HIGH);
     digitalWrite(7, HIGH);
-  }else if (prevConfig["LEDmode"] == "0") {
+  } else if (prevConfig["LEDmode"] == "0") {
     digitalWrite(3, LOW);
     digitalWrite(5, LOW);
     digitalWrite(7, LOW);
@@ -141,6 +140,10 @@ void loop() {
       if (digitalRead(16) == LOW) {
         digitalWrite(7, HIGH);
       } else digitalWrite(7, LOW);
+    } else if (prevConfig["LEDmode"] == "2") {
+      analogWrite(3,30+(cos((millis()/1000.)*3.))*30);
+      analogWrite(5,30+(cos((millis()/1000.)*3.))*30);
+      analogWrite(7,30+(cos((millis()/1000.)*3.))*30);
     }
 
 
@@ -192,7 +195,7 @@ void handlePost() {
   configJson["k1type"] = classifyOutputType(server.arg("k1"));
   configJson["k2type"] = classifyOutputType(server.arg("k2"));
   configJson["k3type"] = classifyOutputType(server.arg("k3"));
-  
+
   serializeJson(configJson, configFile);  //write out json to a stored file
   configFile.close();
   server.send(200, "text/html", success_html());
@@ -283,8 +286,8 @@ String base_html() {
   output += "    <input type = radio id=\"No LED actions\" name=\"LEDmode\" value=0><br>\n";
   output += "    <label for=\"On Press\">On Press</label>\n";
   output += "    <input type = radio id=\"On Press\" name=\"LEDmode\" value=1><br>\n";
-  // output += "    <label for=\"Breath\">Breath</label>\n";
-  // output += "    <input type = radio id=\"Breath\" name=\"LEDmode\" value=2><br>\n";
+  output += "    <label for=\"Breath\">Breath</label>\n";
+  output += "    <input type = radio id=\"Breath\" name=\"LEDmode\" value=2><br>\n";
   output += "    <label for=\"Always on\">Always on</label>\n";
   output += "    <input type = radio id=\"Always on\" name=\"LEDmode\" value=3><br>\n";
   output += "    <label for=\"submit_button\">Save changes:</label>\n";
