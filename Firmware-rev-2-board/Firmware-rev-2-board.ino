@@ -60,12 +60,11 @@ File configFile;
 File keyFile;
 File confRead;
 
+unsigned long curTime;
+
 
 void setup() {
-  // put your setup code here, to run once:
-
   if (!LittleFS.begin(FORMAT_LITTLEFS_IF_FAILED)) {
-    // Serial.println("LittleFS Mount Failed");
     return;
   }
   pinMode(3, OUTPUT);
@@ -122,7 +121,7 @@ void setup() {
 
 void loop() {
   if (!reset_mode) {
-
+    curTime = millis();
     k1but.idle(prevConfig["k1type"], prevConfig["k1output"], keyDictJson);
     k2but.idle(prevConfig["k2type"], prevConfig["k2output"], keyDictJson);
     k3but.idle(prevConfig["k3type"], prevConfig["k3output"], keyDictJson);
@@ -141,9 +140,9 @@ void loop() {
         digitalWrite(7, HIGH);
       } else digitalWrite(7, LOW);
     } else if (prevConfig["LEDmode"] == "2") {
-      analogWrite(3,30+(cos((millis()/1000.)*3.))*30);
-      analogWrite(5,30+(cos((millis()/1000.)*3.))*30);
-      analogWrite(7,30+(cos((millis()/1000.)*3.))*30);
+      analogWrite(3,30+(cos((curTime/1000.)*3.))*30);
+      analogWrite(5,30+(cos((curTime/1000.)*3.))*30);
+      analogWrite(7,30+(cos((curTime/1000.)*3.))*30);
     }
 
 
@@ -166,7 +165,7 @@ void loop() {
       WiFi.softAPConfig(local_ip, gateway, subnet);
       server.begin();
 
-      delay(5000);
+      delay(3000);
       server.on("/", send_base_html);
       server.on("/sent!", HTTP_POST, handlePost);
 
