@@ -5,13 +5,8 @@ It supports keyboard emulation,string based macros, along with media control.
 Before compiling, ensure that ArduinoJson and StringSplitter have been installed from the arduino extensions section!
 
 For help or support, go to makerspace.cc/Macropad or contact johnsonm3@carleton.edu.
-
-This project took me a lot of research; here are some prominent resources:
-https://lastminuteengineers.com/creating-esp32-web-server-arduino-ide/
-https://forum.arduino.cc/t/cannot-find-webserver-h-of-esp32-core/961997
-https://randomnerdtutorials.com/esp32-write-data-littlefs-arduino/
-https://arduinojson.org/v6/api/json/serializejson/
 */
+#include "Arduino.h"
 #include "FS.h"
 #include <LittleFS.h>
 #include <ArduinoJson.h>
@@ -27,6 +22,15 @@ https://arduinojson.org/v6/api/json/serializejson/
 
 #include "button.h"
 #include "encoder.h"
+
+
+
+int classifyOutputType(String userString);
+void send_base_html();
+void handlePost();
+String base_html();
+String success_html();
+
 // Setting default values for local server
 const char* ssid = "macroboard";
 const char* password = "password";
@@ -37,9 +41,6 @@ IPAddress subnet(255, 255, 255, 0);
 WebServer server(80);
 String local_address = "192.168.1.1";
 
-// Setting state upon booting
-bool reset_mode = false;
-bool wifi_setup_has_run = false;
 
 
 // Setting up the various buttons
@@ -63,120 +64,6 @@ File confRead;
 unsigned long curTime;
 
 
-void setup() {
-  if (!LittleFS.begin(FORMAT_LITTLEFS_IF_FAILED)) {
-    return;
-  }
-  pinMode(3, OUTPUT);
-  pinMode(5, OUTPUT);
-  pinMode(7, OUTPUT);
-  USB.begin();
-  Keyboard.begin();
-  Consumer.begin();
-  // if you'd like to change the functionality of the encoder, change the insides of the following if-else statement
-  enc.setup(39, 37, [](int state) {
-    if (state == 1) {
-      Consumer.press(CONSUMER_CONTROL_VOLUME_INCREMENT);
-      delay(10);
-      Consumer.release();
-    } else {
-      Consumer.press(CONSUMER_CONTROL_VOLUME_DECREMENT);
-      delay(10);
-      Consumer.release();
-    };
-  });
-  writeKeyDict();
-  confRead = LittleFS.open("/board_config.json");
-  DeserializationError conf_error = deserializeJson(prevConfig, confRead);
-  File dictFile = LittleFS.open("/key_dict.json");
-  DeserializationError dict_error = deserializeJson(keyDictJson, dictFile);
-
-  if (conf_error) {
-    StaticJsonDocument<256> configJson;
-    configJson["k1output"] = "this is the default for k1; bridge pin8 and ground, connect to the wifi (password=password), then connect to 192.168.1.1";
-    configJson["k2output"] = "this is the default for k2";
-    configJson["k3output"] = "this is the default for k3";
-    configJson["k4output"] = "226";
-
-    configJson["k1type"] = 2;
-    configJson["k2type"] = 2;
-    configJson["k3type"] = 2;
-    configJson["LEDmode"] = "1";
-    serializeJson(configJson, configFile);  //write out json to a stored file
-    configFile.close();
-  }
-  if (dict_error) {
-    writeKeyDict();
-  }
-  if (prevConfig["LEDmode"] == "3") {
-    digitalWrite(3, HIGH);
-    digitalWrite(5, HIGH);
-    digitalWrite(7, HIGH);
-  } else if (prevConfig["LEDmode"] == "0") {
-    digitalWrite(3, LOW);
-    digitalWrite(5, LOW);
-    digitalWrite(7, LOW);
-  }
-}
-
-void loop() {
-  if (!reset_mode) {
-    curTime = millis();
-    k1but.idle(prevConfig["k1type"], prevConfig["k1output"], keyDictJson);
-    k2but.idle(prevConfig["k2type"], prevConfig["k2output"], keyDictJson);
-    k3but.idle(prevConfig["k3type"], prevConfig["k3output"], keyDictJson);
-    if (k4but.media_if_pressed(prevConfig["k4output"]) == 1 && k1but.resetKey() == 1) {  //if you press both the volume knob and key1 at once, it will enter reset mode
-      reset_mode = true;
-    }
-    enc.idle();
-    if (prevConfig["LEDmode"] == "1") {
-      if (digitalRead(33) == LOW) {
-        digitalWrite(3, HIGH);
-      } else digitalWrite(3, LOW);
-      if (digitalRead(18) == LOW) {
-        digitalWrite(5, HIGH);
-      } else digitalWrite(5, LOW);
-      if (digitalRead(16) == LOW) {
-        digitalWrite(7, HIGH);
-      } else digitalWrite(7, LOW);
-    } else if (prevConfig["LEDmode"] == "2") {
-      analogWrite(3,30+(cos((curTime/1000.)*3.))*30);
-      analogWrite(5,30+(cos((curTime/1000.)*3.))*30);
-      analogWrite(7,30+(cos((curTime/1000.)*3.))*30);
-    }
-
-
-
-
-
-    if (rst.resetKey() == 1) {
-      // you can also enter reset_mode via briefly bridging pin 8 and ground
-      reset_mode = true;
-    }
-
-
-
-  } else {
-    if (!wifi_setup_has_run) {
-      Keyboard.releaseAll();
-      WiFi.begin(ssid, password);
-      WiFi.mode(WIFI_AP);
-      WiFi.softAP(ssid, password);
-      WiFi.softAPConfig(local_ip, gateway, subnet);
-      server.begin();
-
-      delay(3000);
-      server.on("/", send_base_html);
-      server.on("/sent!", HTTP_POST, handlePost);
-
-
-
-      wifi_setup_has_run = true;
-    }
-    server.handleClient();
-    k1but.print_if_pressed(local_address);
-  }
-}
 void send_base_html() {
   server.send(200, "text/html", base_html());
 }
@@ -309,4 +196,118 @@ void writeKeyDict() {
   deserializeJson(keyJson, rawData);
   serializeJson(keyJson, keyFile);
   keyFile.close();
+}
+
+void setup() {
+  if (!LittleFS.begin(FORMAT_LITTLEFS_IF_FAILED)) {
+    return;
+  }
+  pinMode(3, OUTPUT);
+  pinMode(5, OUTPUT);
+  pinMode(7, OUTPUT);
+  USB.begin();
+  Keyboard.begin();
+  Consumer.begin();
+  // if you'd like to change the functionality of the encoder, change the insides of the following if-else statement
+  enc.setup(39, 37, [](int state) {
+    if (state == 1) {
+      Consumer.press(CONSUMER_CONTROL_VOLUME_INCREMENT);
+      delay(10);
+      Consumer.release();
+    } else {
+      Consumer.press(CONSUMER_CONTROL_VOLUME_DECREMENT);
+      delay(10);
+      Consumer.release();
+    };
+  });
+  writeKeyDict();
+  confRead = LittleFS.open("/board_config.json");
+  DeserializationError conf_error = deserializeJson(prevConfig, confRead);
+  File dictFile = LittleFS.open("/key_dict.json");
+  DeserializationError dict_error = deserializeJson(keyDictJson, dictFile);
+
+  if (conf_error) {
+    StaticJsonDocument<256> configJson;
+    configJson["k1output"] = "this is the default for k1; bridge pin8 and ground, connect to the wifi (password=password), then connect to 192.168.1.1";
+    configJson["k2output"] = "this is the default for k2";
+    configJson["k3output"] = "this is the default for k3";
+    configJson["k4output"] = "226";
+
+    configJson["k1type"] = 2;
+    configJson["k2type"] = 2;
+    configJson["k3type"] = 2;
+    configJson["LEDmode"] = "1";
+    serializeJson(configJson, configFile);  //write out json to a stored file
+    configFile.close();
+  }
+  if (dict_error) {
+    writeKeyDict();
+  }
+  if (prevConfig["LEDmode"] == "3") {
+    digitalWrite(3, HIGH);
+    digitalWrite(5, HIGH);
+    digitalWrite(7, HIGH);
+  } else if (prevConfig["LEDmode"] == "0") {
+    digitalWrite(3, LOW);
+    digitalWrite(5, LOW);
+    digitalWrite(7, LOW);
+  }
+}
+
+void loop() {
+  // Setting state upon booting
+  static bool reset_mode = false;
+  static bool wifi_setup_has_run = false;
+
+  if (!reset_mode) {
+    curTime = millis();
+    k1but.idle(prevConfig["k1type"], prevConfig["k1output"], keyDictJson);
+    k2but.idle(prevConfig["k2type"], prevConfig["k2output"], keyDictJson);
+    k3but.idle(prevConfig["k3type"], prevConfig["k3output"], keyDictJson);
+    if (k4but.media_if_pressed(prevConfig["k4output"]) == 1 && k1but.resetKey() == 1) {  //if you press both the volume knob and key1 at once, it will enter reset mode
+      reset_mode = true;
+    }
+    enc.idle();
+    if (prevConfig["LEDmode"] == "1") {
+      if (digitalRead(33) == LOW) {
+        digitalWrite(3, HIGH);
+      } else digitalWrite(3, LOW);
+      if (digitalRead(18) == LOW) {
+        digitalWrite(5, HIGH);
+      } else digitalWrite(5, LOW);
+      if (digitalRead(16) == LOW) {
+        digitalWrite(7, HIGH);
+      } else digitalWrite(7, LOW);
+    } else if (prevConfig["LEDmode"] == "2") {
+      analogWrite(3,30+(cos((curTime/1000.)*3.))*30);
+      analogWrite(5,30+(cos((curTime/1000.)*3.))*30);
+      analogWrite(7,30+(cos((curTime/1000.)*3.))*30);
+    }
+    if (rst.resetKey() == 1) {
+      // you can also enter reset_mode via briefly bridging pin 8 and ground
+      reset_mode = true;
+    }
+
+
+
+  } else {
+    if (!wifi_setup_has_run) {
+      Keyboard.releaseAll();
+      WiFi.begin(ssid, password);
+      WiFi.mode(WIFI_AP);
+      WiFi.softAP(ssid, password);
+      WiFi.softAPConfig(local_ip, gateway, subnet);
+      server.begin();
+
+      delay(3000);
+      server.on("/", send_base_html);
+      server.on("/sent!", HTTP_POST, handlePost);
+
+
+
+      wifi_setup_has_run = true;
+    }
+    server.handleClient();
+    k1but.print_if_pressed(local_address);
+  }
 }
