@@ -2,25 +2,32 @@
 // also encludes methods for specific media/keyboard macros
 // copying
 #include "Arduino.h"
+#include "StringSplitter.h"
 #include "USBHIDKeyboard.h"
 #include <ArduinoJson.h>
-#include "StringSplitter.h"
+
+enum OutputType {
+  OUTPUT_STANDARD_KEY = 0,
+  OUTPUT_MODIFIER_KEY = 1,
+  OUTPUT_STRING = 2,
+  OUTPUT_COMBO = 3,
+  OUTPUT_UNKNOWN = 999
+};
 
 class Button {
 public:
-
   int pin;
   int but_read;
   bool but_state;
   int fired = LOW;
   int last_state = LOW;
-  USBHIDKeyboard* Keyboard;
-  USBHIDConsumerControl* Consumer;
+  USBHIDKeyboard *Keyboard;
+  USBHIDConsumerControl *Consumer;
   unsigned long key_delay;
   unsigned long debounce_time;
 
-
-  Button(int pin_num, unsigned long debounce_delay, USBHIDKeyboard* Keyboard_in, USBHIDConsumerControl* Consumer_in) {
+  Button(int pin_num, unsigned long debounce_delay, USBHIDKeyboard *Keyboard_in,
+         USBHIDConsumerControl *Consumer_in) {
     pin = pin_num;
     debounce_time = debounce_delay;
     Keyboard = Keyboard_in;
@@ -29,21 +36,19 @@ public:
   }
 
   void idle(int output_type, String output, StaticJsonDocument<256> key_dict) {
-    // The output type tells us what type of data the key is sending to the computer:
-    // 0 = single key press (standard key input)
-    // 1 = single key press (modifier/special key)
-    // 2 = string of standard characters
-    // 3 = single press combination (ex: KEY_ARROW_DOWN+++a) - only sent once, no hold support
-    // 999 = unknown type; please reinput your string in the website
-    if (output_type == 0) {
+    switch (output_type) {
+    case OUTPUT_STANDARD_KEY:
       print_if_pressed(output);
-    } else if (output_type == 1) {
+      break;
+    case OUTPUT_MODIFIER_KEY:
       mod_if_pressed(output, key_dict);
-      // print_if_pressed("we made it to elseif!");
-    } else if (output_type == 2) {
+      break;
+    case OUTPUT_STRING:
       print_if_pressed(output);
-    } else if (output_type == 3) {
+      break;
+    case OUTPUT_COMBO:
       press_combo(output, key_dict);
+      break;
     }
   }
 
@@ -76,13 +81,14 @@ public:
 
       if (!but_state) {
         Keyboard->press(key_dict[output]);
-      } else Keyboard->releaseAll();
+      } else
+        Keyboard->releaseAll();
     }
   }
 
   void press_combo(String user_arg, StaticJsonDocument<256> key_dict) {
     if (user_arg.indexOf("+++") != -1) {
-      StringSplitter* splitter = new StringSplitter(user_arg, '+++', 5);
+      StringSplitter *splitter = new StringSplitter(user_arg, '+++', 5);
       int count = splitter->getItemCount();
       if (digitalRead(pin) != but_state) {
         but_state = !but_state;
@@ -105,15 +111,12 @@ public:
             }
           }
           Keyboard->releaseAll();
-        } else Keyboard->releaseAll();
+        } else
+          Keyboard->releaseAll();
       }
       delete splitter;
     }
   }
-
-
-
-
 
   void print_if_pressed(String output) {
     if (digitalRead(pin) != but_state) {
@@ -123,8 +126,10 @@ public:
     if (millis() - key_delay > debounce_time && but_state != fired) {
       fired = but_state;
       if (output.length() == 1) {
-        if (!but_state) Keyboard->press(output[0]);
-        else Keyboard->releaseAll();
+        if (!but_state)
+          Keyboard->press(output[0]);
+        else
+          Keyboard->releaseAll();
       } else {
         if (!but_state) {
           for (int i = 0; i < output.length(); i++) {
@@ -146,8 +151,10 @@ public:
     }
     if (millis() - key_delay > debounce_time && but_state != fired) {
       fired = but_state;
-      if (!but_state) Keyboard->press(keycode_num);
-      else Keyboard->releaseAll();
+      if (!but_state)
+        Keyboard->press(keycode_num);
+      else
+        Keyboard->releaseAll();
     }
   }
   void del_macro() {
@@ -160,7 +167,8 @@ public:
 
       if (!but_state) {
         Keyboard->press(KEY_DELETE);
-      } else Keyboard->releaseAll();
+      } else
+        Keyboard->releaseAll();
     }
   }
   void copy_macro() {
@@ -174,7 +182,8 @@ public:
       if (!but_state) {
         Keyboard->press(KEY_LEFT_CTRL);
         Keyboard->press('c');
-      } else Keyboard->releaseAll();
+      } else
+        Keyboard->releaseAll();
     }
   }
 
@@ -189,7 +198,8 @@ public:
       if (!but_state) {
         Keyboard->press(KEY_LEFT_CTRL);
         Keyboard->press('v');
-      } else Keyboard->releaseAll();
+      } else
+        Keyboard->releaseAll();
     }
   }
 

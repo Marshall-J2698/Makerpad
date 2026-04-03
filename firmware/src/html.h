@@ -1,0 +1,87 @@
+#include "Arduino.h"
+
+String success_html() {
+  String output = "";
+  output += "<!DOCTYPE html>\n";
+  output += "<html lang=\"en\">\n";
+  output += "  <head>\n";
+  output += "    <meta charset=\"UTF-8\">\n";
+  output += "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n";
+  output += "    <meta http-equiv=\"X-UA-Compatible\" content=\"ie=edge\">\n";
+  output += "    <title>Macropad UI</title>\n";
+  output += "    <link rel=\"stylesheet\" href=\"style.css\">\n";
+  output += "  </head>\n";
+  output += "\n";
+  output += "  <body>\n";
+  output += "    <style>\n";
+  output += "      body {background-image: linear-gradient(rgb(52, 47, 69),rgb(46, 41, 61))}\n";
+  output += "      body {min-height: 100vh}\n";
+  output += "      body {text-align: center}\n";
+  output += "      body {font-family: 'JetBrains Mono',Verdana, Geneva, Tahoma, sans-serif}\n";
+  output += "      body {color: lightgray}\n";
+  output += "    </style>\n";
+  output += "    <h1>\n";
+  output += "      Uploaded! unplug and replug macropad for changes to take effect.\n";
+  output += "    </h1>\n";
+  output += "  </body>\n";
+  output += "</html>\n";
+  return output;
+}
+
+String base_html() {
+  String output = "";
+  output += "<!DOCTYPE html>\n";
+  output += "<html lang=\"en\">\n";
+  output += "  <head>\n";
+  output += "    <meta charset=\"UTF-8\">\n";
+  output += "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n";
+  output += "    <meta http-equiv=\"X-UA-Compatible\" content=\"ie=edge\">\n";
+  output += "    <title>Macropad UI</title>\n";
+  output += "    <link rel=\"stylesheet\" href=\"style.css\">\n";
+  output += "  </head>\n";
+  output += "  <h1>Reprogram your Macropad!</h1>\n";
+  output += "  <body>\n";
+  output += "    <style>\n";
+  output += "      body {background-image: linear-gradient(rgb(52, 47, 69),rgb(46, 41, 61))}\n";
+  output += "      body {min-height: 100vh}\n";
+  output += "      body {text-align: center}\n";
+  output += "      body {font-family: 'JetBrains Mono',Verdana, Geneva, Tahoma, sans-serif}\n";
+  output += "      body {color: lightgray}\n";
+  output += "      a:link {color: yellow}\n";
+  output += "    </style>\n";
+  output += "    <form action=\"/sent!\" method=\"post\" enctype=\"multipart/form-data\">\n";
+  output += "    <label for=\"k1\">key 1 string:</label><br>\n";
+  output += "    <input type=\"text\" id=\"k1\" name=\"k1\" maxlength=\"100\"><br>\n";
+  output += "    <label for=\"k2\">key 2 string:</label><br>\n";
+  output += "    <input type=\"text\" id=\"k2\" name=\"k2\" maxlength=\"100\"><br>\n";
+  output += "    <label for=\"k3\">key 3 string:</label><br>\n";
+  output += "    <input type=\"text\" id=\"k3\" name=\"k3\" maxlength=\"100\"><br><br>\n";
+  output += "    Knob action:<br>\n";
+  output += "    <label for=\"Mute\">Mute</label>\n";
+  output += "    <input type = radio id=\"Mute\" name=\"k4\" value=\"226\"><br>\n";
+  output += "    <label for=\"Pause\">Pause</label>\n";
+  output += "    <input type = radio id=\"Pause\" name=\"k4\" value=\"205\"><br>\n";
+  output += "    <label for=\"Next Track\">Next Track</label>\n";
+  output += "    <input type = radio id=\"Next Track\" name=\"k4\" value=\"181\"><br>\n";
+  output += "    <br>\n";
+  output += "    <br><b>LED Mode:</b><br>\n";
+  output += "    <label for=\"No LED actions\">No LED actions</label>\n";
+  output += "    <input type = radio id=\"No LED actions\" name=\"LEDmode\" value=0><br>\n";
+  output += "    <label for=\"On Press\">On Press</label>\n";
+  output += "    <input type = radio id=\"On Press\" name=\"LEDmode\" value=1><br>\n";
+  output += "    <label for=\"Breath\">Breath</label>\n";
+  output += "    <input type = radio id=\"Breath\" name=\"LEDmode\" value=2><br>\n";
+  output += "    <label for=\"Always on\">Always on</label>\n";
+  output += "    <input type = radio id=\"Always on\" name=\"LEDmode\" value=3><br>\n";
+  output += "    <label for=\"submit_button\">Save changes:</label>\n";
+  output += "    <input type = \"submit\" id = \"submit_button\" name=\"submit_button\">\n";
+  output += "    </form>\n";
+  output += "    <h3>\n";
+  output += "      Welcome to the Makerpad reprogramming tool! <br>\n";
+  output += "      To use, simply enter the string or key that you're interested in sending for a given key, then press submit.<br><br>\n";
+  output += "      For more info, please visit <a href=\"www.makerspace.cc/macropad\">makerspace.cc/macropad</a> for more detailed instructions\n";
+  output += "    </h3>\n";
+  output += "  </body>\n";
+  output += "</html>\n";
+  return output;
+}
